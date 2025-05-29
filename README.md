@@ -7,7 +7,7 @@ This tool, the **Data Extension Explorer with SQL Generator**, is designed for S
 * Quickly locate any Data Extension within their account.
 * View the full folder path of each Data Extension.
 * Inspect its complete attribute schema (field names, data types, primary key status, nullability, etc.).
-* Generate simple SQL query templates (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) quickly based on the selected Data Extension's structure.
+* Generate simple SQL query quickly based on the selected Data Extension's structure.
 
 The goal is to significantly speed up development, reduce manual errors in query writing, and improve overall data asset management within SFMC.
 
@@ -16,7 +16,7 @@ The goal is to significantly speed up development, reduce manual errors in query
 * **Comprehensive DE Listing:** Displays all Data Extensions accessible within the Business Unit.
 * **Folder Path Visibility:** Clearly shows the folder structure where each Data Extension resides.
 * **Detailed Attribute Schema:** Provides a full breakdown of fields, data types, lengths, primary key status, and nullability for selected Data Extensions.
-* **Quick SQL Generation:** Automatically generates basic SQL DML statements tailored to the selected Data Extension's schema.
+* **Quick SQL Generation:** Automatically generates basic SQL statements tailored to the selected Data Extension's schema.
 * **Intuitive User Interface:** Designed for ease of use and quick information retrieval.
 
 ## Prerequisites
