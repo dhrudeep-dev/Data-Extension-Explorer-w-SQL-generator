@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Data Extension Viewer</title>
+    <style>
+        body { 
+            background-color: #f8f9fa; 
+            font-family: Arial, sans-serif; 
+        }
+        .sql-container { 
+            background-color: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; 
+        }
+        .sql-display { 
+            background-color: #E6F5FB; 
+            padding: 15px; 
+            border-radius: 6px; 
+            font-family: monospace; 
+            border: 1px solid #b3e0ff; 
+            font-size: 13px; 
+        }
+        .clear-btn { 
+            background-color: #ff6b6b; 
+            color: white; 
+            border: none; 
+            padding: 10px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            transition: background-color 0.2s; 
+            font-size: 13px; 
+        }
+        .clear-btn:hover { 
+            background-color: #ff5252; 
+        }
+        .de-card { 
+            background-color: white; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            transition: transform 0.2s; 
+        }
+        .de-card:hover { 
+            transform: translateY(-2px); 
+        }
+        .de-header { 
+            background-color: #E6F5FB; 
+            padding: 12px; 
+            border-radius: 8px 8px 0 0; 
+            border-bottom: 1px solid #b3e0ff; 
+        }
+        .select-all-btn { 
+            background-color: #4dabf7; 
+            color: white; 
+            border: none; 
+            padding: 4px 12px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 11px; 
+            transition: background-color 0.2s; 
+        }
+        .select-all-btn:hover { 
+            background-color: #339af0; 
+        }
+        .field-item { 
+            padding: 6px 10px; 
+            border-bottom: 1px solid #e9ecef; 
+            transition: background-color 0.2s; 
+            font-size: 12px; 
+        }
+        .field-item:hover { 
+            background-color: #f8f9fa; 
+        }
+        .search-container { 
+            background-color: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); 
+            margin-bottom: 20px; 
+        }
+        .search-wrapper { 
+            display: flex; 
+            gap: 10px; 
+            align-items: center; 
+        }
+        .search-input { 
+            flex: 1; 
+            padding: 12px; 
+            border: 1px solid #ddd; 
+            border-radius: 6px; 
+            font-size: 14px; 
+        }
+        .search-input:focus { 
+            outline: none; 
+            border-color: #4dabf7; 
+            box-shadow: 0 0 0 2px rgba(77, 171, 247, 0.2); 
+        }
+        .clear-search-btn { 
+            background-color: #6c757d; 
+            color: white; 
+            border: none; 
+            padding: 12px 20px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-size: 14px; 
+            transition: background-color 0.2s; 
+        }
+        .clear-search-btn:hover { 
+            background-color: #5a6268; 
+        }
+        .search-results { 
+            margin-top: 10px; 
+            color: #666; 
+            font-size: 13px; 
+        }
+        .action-btn { 
+            background-color: #4dabf7; 
+            color: white; 
+            border: none; 
+            padding: 8px 12px; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            font-size: 12px; 
+            margin-right: 5px; 
+            transition: background-color 0.2s; 
+        }
+        .action-btn:hover { 
+            background-color: #339af0; 
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #222;
+            color: #fff;
+            text-align: center;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            line-height: 1.6;
+            position: absolute;
+            z-index: 9999;
+            top: 140%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            word-wrap: break-word;
+            word-break: break-word;
+            overflow-wrap: break-word;
+        }
+        .tooltip .tooltiptext::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 8px;
+            border-style: solid;
+            border-color: transparent transparent #222 transparent;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+            transform: translateX(-50%) translateY(8px);
+        }
+    </style>
+</head>
+<body>
+    <div class="search-container">
+        <div style="background-color: #4dabf7; color: white; padding: 10px 15px; border-radius: 6px; margin-bottom: 15px; font-size: 14px;">
+            Total Data Extensions: <span id="totalCount" style="font-weight: bold;">0</span>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div class="search-wrapper" style="flex: 1; margin-right: 15px;">
+                <input type="text" id="searchInput" class="search-input" placeholder="Search by Data Extension name..." list="deOptions" onkeyup="searchDataExtensions()">
+                <datalist id="deOptions"></datalist>
+                <button onclick="clearSearch()" class="clear-search-btn">Clear Search</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; background-color: white; padding: 8px 12px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+                <input type="checkbox" id="hideSystemDEs" onchange="toggleSystemDEFilter(this)">
+                <label for="hideSystemDEs" style="font-size: 13px; color: #495057;">Hide System Data Extensions</label>
+            </div>
+        </div>
+        <div id="searchResults" class="search-results"></div>
+    </div>
+
+    <div class="sql-container">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px;">
+            <div id="sqlDisplay" class="sql-display" style="flex: 1;">No fields selected</div>
+            <button onclick="clearAllSelections()" class="clear-btn">Clear All</button>
+        </div>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <div id="gridContainer"></div>
+    </div>
+   
+    <script>
+    var selectedFields = new Map();
+    var allDataExtensions = [];
+    var dataExtensions = [];
+    var selectedDataExtensions = new Set();
+    var hideSystemDEs = false;
+
+    // Add exclusion list
+    var exclusionList = [
+        "QueryStudioResults", 
+        "log", 
+        "ExpressionBuilderAttributes", 
+        "IGO_PROFILES", 
+        "IGO_VIEWS", 
+        "PI_SESSION_ENDS", 
+        "IGO_PURCHASES", 
+        "IGO_PRODUCTS", 
+        "IGO_PRODUCTATTRIBS", 
+        "PI_CONTENTVIEWS", 
+        "PI_CONTENT", 
+        "PI_CONTENTATTRIBS", 
+        "PI_SESSIONS", 
+        "Einstein_MC_Predictive_Scores", 
+        "PI_ABANDONED_CART_EVENT", 
+        "PI_ABANDONED_CART_ITEMS"
+    ];
+
+    // Initialize on page load
+    window.onload = function() {
+      getdataExtensions();
+    };
+
+    async function getdataExtensions() {
+        try {
+            // Show loading state
+            document.getElementById('gridContainer').innerHTML = `
+                <div style="text-align: center; padding: 40px;">
+                    <div style="display: inline-block; padding: 20px; background-color: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <div style="margin-bottom: 10px; color: #666;">Loading data extensions...</div>
+                        <div style="width: 40px; height: 40px; border: 3px solid #f3f3f3; border-top: 3px solid #4dabf7; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                    </div>
+                </div>
+                <style>
+                    @keyframes spin {
+                        0% { transform: rotate(0deg); }
+                        100% { transform: rotate(360deg); }
+                    }
+                </style>`;
+            
+            // Fetch data from the API
+            const url = new URL('YOUR_CLOUDPAGE_URL'); // replace this url with your cloudpageurl
+            url.searchParams.append('CategoryID', '');
+            url.searchParams.append('list', '');
+            const response = await fetch(url.toString());
+            
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`Server error (${response.status}): ${errorText}`);
+            }
+            
+            const data = await response.json();
+            
+            // Sort data extensions by CreatedDate in descending order
+            if (data.dataExtensions && Array.isArray(data.dataExtensions)) {
+                data.dataExtensions.sort((a, b) => {
+                    const dateA = new Date(a.CreatedDate || 0);
+                    const dateB = new Date(b.CreatedDate || 0);
+                    return dateB - dateA; // Sort in descending order (newest first)
+                });
+            }
+            
+            // Validate the data structure
+            if (!data || typeof data !== 'object') {
+                throw new Error('Invalid response format from server');
+            }
+
+            if (!data.success) {
+                throw new Error(data.message || 'Server returned an error');
+            }
+
+            if (!Array.isArray(data.dataExtensions)) {
+                throw new Error('Data extensions array not found in response');
+            }
+
+            // Set the data
+            allDataExtensions = data.dataExtensions;
+            dataExtensions = [...allDataExtensions]; // Create a copy of the array
+            
+            // Update total count
+            document.getElementById('totalCount').textContent = allDataExtensions.length;
+            
+            // Initialize the grid and search options
+            updateGrid();
+            populateSearchOptions();
+            updateSearchResults(allDataExtensions.length);
+        } catch (error) {
+            console.error('Error fetching data extensions:', error);
+            document.getElementById('gridContainer').innerHTML = 
+                '<div style="color: #ff6b6b; padding: 15px; background-color: #fff5f5; border-radius: 6px; margin: 20px 0;">' +
+                'Error loading data extensions: ' + error.message + '</div>';
+        }
+    }
+
+    async function getdataExtensionFolder(deName, categoryId) {
+        try {
+            // Show loading state for the specific card
+            const targetFolderPathDiv = document.getElementById('folder-path-' + deName);
+            
+            if (targetFolderPathDiv) {
+                targetFolderPathDiv.style.display = 'block';
+                targetFolderPathDiv.innerHTML = '<div style="text-align: center; padding: 10px; color: #666;">Loading folder path...</div>';
+            }
+            
+            // Fetch data from the API
+            const url = new URL('YOUR_CLOUDPAGE_URL'); // replace this url with your cloudpageurl
+            url.searchParams.append('CategoryID', categoryId);
+            url.searchParams.append('deName', deName);
+            console.log('Fetching from URL:', url.toString());
+            
+            const response = await fetch(url.toString());
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Received data:', data);
+            
+            // Validate the data structure
+            if (!data || typeof data !== 'object') {
+                throw new Error('Invalid response format from server');
+            }
+
+            if (!data.folderPath) {
+                console.error('No folder path in response:', data);
+                throw new Error('Folder path not found in response');
+            }
+
+            // Update only the folder path display
+            if (targetFolderPathDiv) {
+                console.log('Updating folder path display with:', data.folderPath);
+                const cleanFolderPath = data.folderPath.replace(/"/g, '');
+                targetFolderPathDiv.innerHTML = '<div style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; border-bottom: 1px solid #e9ecef; margin-bottom: 15px;"><strong>Folder Path:</strong><br><br/>' + cleanFolderPath + '</div>';
+            } else {
+                console.error('Could not find target folder path div for:', deName);
+            }
+        } catch (error) {
+            console.error('Error fetching folder path:', error);
+            if (targetFolderPathDiv) {
+                targetFolderPathDiv.innerHTML = 
+                    '<div style="color: #ff6b6b; padding: 10px; background-color: #fff5f5; border-radius: 4px;">' +
+                    'Error loading folder path: ' + error.message + '</div>';
+            }
+        }
+    }
+
+    async function getDEAttributes(customerKey) {
+        try {
+            // Show loading state for attributes
+            const attributesDiv = document.getElementById('attributes-' + customerKey);
+            if (attributesDiv) {
+                attributesDiv.innerHTML = '<div style="text-align: center; padding: 10px; color: #666;">Loading attributes...</div>';
+                attributesDiv.style.display = 'block';
+            }
+            
+            // Fetch data from the API
+            const url = new URL('YOUR_CLOUDPAGE_URL'); // replace this url with your cloudpageurl
+            url.searchParams.append('deCusKey', customerKey);
+            url.searchParams.append('isAttributecall', 'true');
+
+            console.log('Fetching from URL:', url.toString());
+            
+            const response = await fetch(url.toString());
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            console.log('Received data:', data.Attribites);
+            
+            // Validate the data structure
+            if (!data || typeof data !== 'object') {
+                throw new Error('Invalid response format from server');
+            }
+
+            if (!data.Attribites) {
+                console.error('No attributes in response:', data);
+                throw new Error('Attributes not found in response');
+            }
+
+            // Display attributes in the card
+            if (attributesDiv) {
+                const attributes = data.Attribites;
+                // Find the data extension name for this customer key
+                const deName = allDataExtensions.find(de => de.customerKey === customerKey)?.name;
+                
+                let attributesHtml = `
+                    <div style="padding: 10px; background-color: #f8f9fa; border-radius: 4px; margin-top: 10px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                            <strong>Attributes</strong>
+                            <button onclick="toggleAllAttributes('${deName}', '${customerKey}', this)" 
+                                    class="select-all-btn" 
+                                    style="font-size: 11px; padding: 2px 8px;">
+                                Select All
+                            </button>
+                        </div>
+                        <div style="max-height: 400px; overflow-y: auto; background-color: white; border-radius: 4px; border: 1px solid #e9ecef;">`;
+                
+                // Format and display each attribute
+                if (Array.isArray(attributes)) {
+                    // Sort attributes to put primary key first
+                    attributes.sort((a, b) => {
+                        if (a.primaryKey && !b.primaryKey) return -1;
+                        if (!a.primaryKey && b.primaryKey) return 1;
+                        return 0;
+                    });
+
+                    attributes.forEach(attr => {
+                        const properties = [];
+                        if (attr.fieldType) {
+                            let typeInfo = attr.fieldType;
+                            if (attr.maxLength) {
+                                typeInfo += ` - ${attr.maxLength}`;
+                            }
+                            properties.push(typeInfo);
+                        }
+                        if (attr.primaryKey) properties.push('primaryKey');
+                        if (attr.required) properties.push('required');
+                        
+                        attributesHtml += `
+                            <div style="padding: 6px 10px; border-bottom: 1px solid #e9ecef; cursor: pointer; ${attr.primaryKey ? 'font-weight: bold;' : ''}" 
+                                 onclick="toggleField('${deName}', '${attr.name}', this)"
+                                 data-field="${attr.name}"
+                                 onmouseover="this.style.backgroundColor='#f8f9fa'"
+                                 onmouseout="if(!selectedFields.has('${deName}.${attr.name}')) this.style.backgroundColor=''">
+                                <span style="font-size: 14px;">${attr.name}</span><br/>
+                                <span style="color: #666; font-size: 11px;">(${properties.join(' - ')})</span>
+                            </div>`;
+                    });
+                } else {
+                    attributesHtml += '<div style="color: #666; padding: 10px;">No attributes found</div>';
+                }
+                
+                attributesHtml += `
+                        </div>
+                    </div>`;
+                attributesDiv.innerHTML = attributesHtml;
+            }
+        } catch (error) {
+            console.error('Error fetching attributes:', error);
+            const attributesDiv = document.getElementById('attributes-' + customerKey);
+            if (attributesDiv) {
+                attributesDiv.innerHTML = 
+                    '<div style="color: #ff6b6b; padding: 10px; background-color: #fff5f5; border-radius: 4px;">' +
+                    'Error loading attributes: ' + error.message + '</div>';
+            }
+        }
+    }
+
+    function toggleAllAttributes(deName, customerKey, button) {
+        const attributesDiv = document.getElementById('attributes-' + customerKey);
+        if (!attributesDiv) return;
+
+        const isSelecting = !button.classList.contains('selected');
+        button.classList.toggle('selected');
+        button.textContent = isSelecting ? 'Deselect All' : 'Select All';
+
+        const attributeElements = attributesDiv.getElementsByTagName('div');
+        for (let element of attributeElements) {
+            if (element.hasAttribute('data-field')) {
+                const fieldName = element.getAttribute('data-field');
+                if (isSelecting) {
+                    selectedFields.set(deName + '.' + fieldName, {deName: deName, fieldName: fieldName});
+                    element.style.backgroundColor = '#E6F5FB';
+                } else {
+                    selectedFields.delete(deName + '.' + fieldName);
+                    element.style.backgroundColor = '';
+                }
+            }
+        }
+        updateSQLDisplay();
+    }
+
+    function populateSearchOptions() {
+        var datalist = document.getElementById('deOptions');
+        datalist.innerHTML = ''; // Clear existing options
+        allDataExtensions.forEach(function(de) {
+            var option = document.createElement('option');
+            option.value = de.name;
+            datalist.appendChild(option);
+        });
+    }
+
+    function toggleSystemDEFilter(checkbox) {
+        hideSystemDEs = checkbox.checked;
+        searchDataExtensions(); // Reapply search with new filter
+    }
+
+    function searchDataExtensions() {
+        var searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+        var filteredDEs = allDataExtensions.filter(function(de) {
+            // First apply the system DE filter if enabled
+            if (hideSystemDEs) {
+                // Check if the DE name starts with any of the excluded prefixes
+                if (exclusionList.some(prefix => de.name.startsWith(prefix))) {
+                    return false;
+                }
+            }
+            // Then apply the search term filter
+            return de.name.toLowerCase().includes(searchTerm);
+        });
+        dataExtensions = filteredDEs;
+        updateGrid();
+        updateSearchResults(filteredDEs.length);
+        
+        // Preserve attributes visibility and checkbox states for filtered data extensions
+        filteredDEs.forEach(function(de) {
+            const attributesDiv = document.getElementById('attributes-' + de.customerKey);
+            if (attributesDiv && attributesDiv.style.display === 'block') {
+                attributesDiv.style.display = 'block';
+            }
+            // Restore checkbox state
+            const checkbox = document.getElementById('de-select-' + de.name);
+            if (checkbox) {
+                checkbox.checked = selectedDataExtensions.has(de.name);
+            }
+        });
+    }
+
+    function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        // Don't reset the system DE filter checkbox
+        searchDataExtensions(); // This will reapply the current filter state
+    }
+
+    function updateSearchResults(count) {
+        var resultsText = count === allDataExtensions.length ? '' : 'Found ' + count + ' matching data extension(s)';
+        document.getElementById('searchResults').textContent = resultsText;
+    }
+
+    function updateGrid() {
+        var gridContainer = document.getElementById('gridContainer');
+        gridContainer.innerHTML = '';
+
+        // Check if dataExtensions is valid
+        if (!Array.isArray(dataExtensions) || dataExtensions.length === 0) {
+            gridContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No data extensions found</div>';
+            return;
+        }
+
+        // Sort data extensions to put selected ones first, maintaining their relative order
+        var sortedExtensions = [...dataExtensions].sort((a, b) => {
+            const aSelected = selectedDataExtensions.has(a.name);
+            const bSelected = selectedDataExtensions.has(b.name);
+            
+            // If both are selected or both are not selected, maintain original order
+            if (aSelected === bSelected) {
+                // Find original indices to maintain relative order
+                const aIndex = allDataExtensions.findIndex(de => de.name === a.name);
+                const bIndex = allDataExtensions.findIndex(de => de.name === b.name);
+                return aIndex - bIndex;
+            }
+            
+            // Put selected ones first
+            return aSelected ? -1 : 1;
+        });
+
+        var numRows = Math.ceil(sortedExtensions.length / 4);
+        
+        for (var row = 0; row < numRows; row++) {
+            var rowDiv = document.createElement('div');
+            rowDiv.style.display = 'flex';
+            rowDiv.style.marginBottom = '20px';
+            rowDiv.style.gap = '15px';
+            
+            for (var col = 0; col < 4; col++) {
+                var index = row * 4 + col;
+                if (index < sortedExtensions.length) {
+                    var de = sortedExtensions[index];
+                    // Validate data extension object
+                    if (!de || !de.name || !Array.isArray(de.fields)) {
+                        console.warn('Invalid data extension object:', de);
+                        continue;
+                    }
+
+                    var containerId = 'de-container-' + index;
+                    
+                    var cardHtml = '<div class="de-card" style="flex: 1; min-width: 300px;">' +
+                        '<div class="de-header">' +
+                        '<div style="display: flex; justify-content: space-between; align-items: center;">' +
+                        '<div style="display: flex; align-items: center; gap: 8px;">' +
+                        '<input type="checkbox" id="de-select-' + de.name + '" ' +
+                        'onchange="toggleDataExtension(\'' + de.name + '\', this)" ' +
+                        (selectedDataExtensions.has(de.name) ? 'checked' : '') + '>' +
+                        '<div class="tooltip" style="font-weight: bold; text-overflow: ellipsis; font-size: 13px;" data-de-name="' + de.name + '">' + de.name +
+                        '<span class="tooltiptext" style="display:none;">Click Get Folder Path to view folder location</span></div>' +
+                        '</div>' +
+                        '<input type="checkbox" id="select-all-' + index + '" onchange="toggleAllFields(\'' + de.name + '\', \'' + containerId + '\', this)" class="select-all-btn" style="display:none;">' +
+                        '</div>' +
+                        '</div>' +
+                        '<div style="padding: 10px; display: flex; gap: 10px;">' +
+                        '<button onclick="getdataExtensionFolder(\'' + de.name + '\', ' + (de.CategoryID || 0) + ')" class="action-btn" style="font-size: 11px; padding: 4px 8px;">Get Folder Path</button>' +
+                        '<button onclick="getDEAttributes(\'' + de.customerKey + '\')" class="action-btn" style="font-size: 11px; padding: 4px 8px;">Get Attributes</button>' +
+                        '</div>' +
+                        '<div id="folder-path-' + de.name + '" style="padding: 0 10px; font-size: 12px; color: #666; margin-bottom: 10px; display: none;"></div>' +
+                        '<div id="attributes-' + de.customerKey + '" style="padding: 0 10px; font-size: 12px; color: #666; margin-bottom: 10px; display: none;"></div>' +
+                        '<div id="' + containerId + '" style="padding: 10px; max-height: 300px; overflow-y: auto;">';
+                    
+                    if (de.fields && de.fields.length > 0) {
+                        de.fields.forEach(function(field) {
+                            if (field && field.name) {
+                                cardHtml += '<div class="field-item" data-field="' + field.name + '" ' +
+                                    'onclick="toggleField(\'' + de.name + '\', \'' + field.name + '\', this)" ' +
+                                    'onmouseover="this.style.backgroundColor=\'#f8f9fa\'" ' +
+                                    'onmouseout="if(!this.style.backgroundColor || this.style.backgroundColor === \'#f8f9fa\') this.style.backgroundColor=\'\'">' +
+                                    (field.displayName || field.name) +
+                                    '</div>';
+                            }
+                        });
+                    } else {
+                        cardHtml += '<div style="color: #666; padding: 10px; font-size: 12px;">No fields found</div>';
+                    }
+                    
+                    cardHtml += '</div></div>';
+                    rowDiv.innerHTML += cardHtml;
+                }
+            }
+            gridContainer.appendChild(rowDiv);
+        }
+    }
+
+    function toggleAllFields(deName, containerId, checkbox) {
+        var container = document.getElementById(containerId);
+        var fields = container.getElementsByClassName('field-item');
+        
+        for(var i = 0; i < fields.length; i++) {
+            var field = fields[i];
+            var fieldName = field.getAttribute('data-field');
+            var key = deName + '.' + fieldName;
+            
+            if(checkbox.checked) {
+                selectedFields.set(key, {deName: deName, fieldName: fieldName});
+                field.style.backgroundColor = '#E6F5FB';
+            } else {
+                selectedFields.delete(key);
+                field.style.backgroundColor = '';
+            }
+        }
+        updateSQLDisplay();
+    }
+
+    function toggleField(deName, fieldName, element) {
+        var key = deName + '.' + fieldName;
+        if (selectedFields.has(key)) {
+            selectedFields.delete(key);
+            element.style.backgroundColor = '';
+            // Uncheck the select all checkbox if any field is deselected
+            var containerId = element.parentElement.id;
+            if (containerId) {
+                var checkbox = document.getElementById('select-all-' + containerId.split('-')[2]);
+                if (checkbox) checkbox.checked = false;
+            }
+        } else {
+            selectedFields.set(key, {deName: deName, fieldName: fieldName});
+            element.style.backgroundColor = '#E6F5FB';
+            // Check if all fields are selected to update the checkbox
+            var containerId = element.parentElement.id;
+            if (containerId) {
+                var container = document.getElementById(containerId);
+                if (container) {
+                    var fields = container.getElementsByClassName('field-item');
+                    var allSelected = true;
+                    for(var i = 0; i < fields.length; i++) {
+                        var field = fields[i];
+                        var fName = field.getAttribute('data-field');
+                        var fKey = deName + '.' + fName;
+                        if(!selectedFields.has(fKey)) {
+                            allSelected = false;
+                            break;
+                        }
+                    }
+                    var checkbox = document.getElementById('select-all-' + containerId.split('-')[2]);
+                    if (checkbox) checkbox.checked = allSelected;
+                }
+            }
+        }
+        updateSQLDisplay();
+    }
+
+    function updateSQLDisplay() {
+        var queries = new Map();
+        selectedFields.forEach(function(value, key) {
+            if (!queries.has(value.deName)) {
+                queries.set(value.deName, []);
+            }
+            queries.get(value.deName).push(value.fieldName);
+        });
+        
+        var display = '';
+        queries.forEach(function(fields, deName) {
+            if (display) display += '<br><br>';
+            display += 'SELECT ' + fields.join(', ') + ' FROM [' + deName + ']';
+        });
+        
+        document.getElementById('sqlDisplay').innerHTML = display || 'No fields selected';
+        document.getElementById('sqlDisplay').style.display = 'block';
+    }
+
+    function clearAllSelections() {
+        selectedFields.clear();
+        selectedDataExtensions.clear();
+        var elements = document.getElementsByClassName('field-item');
+        for(var i = 0; i < elements.length; i++) {
+            elements[i].style.backgroundColor = '';
+        }
+        // Uncheck all checkboxes
+        var checkboxes = document.querySelectorAll('input[type="checkbox"]');
+        for(var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].checked = false;
+        }
+        document.getElementById('sqlDisplay').innerHTML = 'No fields selected';
+        document.getElementById('sqlDisplay').style.display = 'block';
+        updateGrid();
+    }
+
+    function getFolderPath(deName, categoryId) {
+        var list = [];
+        list.push(deName);
+        var folderPath = getDEFolder(categoryId, list);
+        var tooltip = document.querySelector('[data-de-name="' + deName + '"] .tooltiptext');
+        if (tooltip) {
+            tooltip.textContent = folderPath;
+        }
+    }
+
+    function getAttributes(deName) {
+        alert('Attributes for ' + deName + ' will be fetched here.');
+    }
+
+    function toggleDataExtension(deName, checkbox) {
+        if (checkbox.checked) {
+            selectedDataExtensions.add(deName);
+        } else {
+            selectedDataExtensions.delete(deName);
+        }
+        updateGrid();
+    }
+    </script>
+</body>
+</html>
