@@ -5,7 +5,7 @@ This tool, the Data Extension Explorer with SQL Generator, is designed for Sales
 Step 1 - Publish both cloudpages to your org
 . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
 Step 2 - Copy published url of data-extension-explorer-backend.js cloudpage
-. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . 
 Step 3 - Open data-extension-explorer.html file and search for YOUR_CLOUDPAGE_URL 
          and replace this URL with copied URL from step 2 
          (There are three YOUR_CLOUDPAGE_URL in this file replace with same URL from step 2)
