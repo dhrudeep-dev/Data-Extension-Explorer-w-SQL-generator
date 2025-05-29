@@ -9,5 +9,5 @@ Step 2 - Copy published url of data-extension-explorer-backend.js cloudpage
 Step 3 - Open data-extension-explorer.html file and search for YOUR_CLOUDPAGE_URL 
          and replace this URL with copied URL from step 2 
          (There are three YOUR_CLOUDPAGE_URL in this file replace with same URL from step 2)
-. . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . .
+. . . . . . . . . . . . . . . . . . . . . . . . . .
 Now preview data-extension-explorer.html file 
